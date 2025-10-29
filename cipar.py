@@ -215,10 +215,21 @@
   },
   {
    "cell_type": "code",
-   "execution_count": 23,
+   "execution_count": null,
    "id": "62bdcb60",
    "metadata": {},
-   "outputs": [],
+   "outputs": [
+    {
+     "ename": "",
+     "evalue": "",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[1;31mRunning cells with '.venv (Python 3.12.2)' requires the ipykernel package.\n",
+      "\u001b[1;31mInstall 'ipykernel' into the Python environment. \n",
+      "\u001b[1;31mCommand: '\"c:/Users/Keerthana A R/OneDrive/Desktop/AIML/.venv/Scripts/python.exe\" -m pip install ipykernel -U --force-reinstall'"
+     ]
+    }
+   ],
    "source": [
     "from keras.models import Sequential\n",
     "from keras.layers import Dense,Flatten\n",
@@ -833,7 +844,7 @@
  ],
  "metadata": {
   "kernelspec": {
-   "display_name": "ai_bootcamp",
+   "display_name": ".venv",
    "language": "python",
    "name": "python3"
   },
@@ -847,7 +858,7 @@
    "name": "python",
    "nbconvert_exporter": "python",
    "pygments_lexer": "ipython3",
-   "version": "3.10.11"
+   "version": "3.12.2"
   }
  },
  "nbformat": 4,
