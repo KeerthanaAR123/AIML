@@ -36,7 +36,7 @@ model_base.compile(
     metrics=['accuracy']
 )
 
-print("\n🚀 Training Base Model...")
+print("\n Training Base Model...")
 history_base = model_base.fit(
     x_train, y_train,
     epochs=10,
@@ -63,7 +63,7 @@ model_l2.compile(
     metrics=['accuracy']
 )
 
-print("\n🚀 Training L2 Regularized Model...")
+print("\n Training L2 Regularized Model...")
 history_l2 = model_l2.fit(
     x_train, y_train,
     epochs=10,
@@ -91,7 +91,7 @@ model_l4.compile(
     metrics=['accuracy']
 )
 
-print("\n🚀 Training L4 Deeper Model...")
+print("\n Training L4 Deeper Model...")
 history_l4 = model_l4.fit(
     x_train, y_train,
     epochs=10,
@@ -107,13 +107,13 @@ loss_base, acc_base = model_base.evaluate(x_test, y_test, verbose=0)
 loss_l2, acc_l2 = model_l2.evaluate(x_test, y_test, verbose=0)
 loss_l4, acc_l4 = model_l4.evaluate(x_test, y_test, verbose=0)
 
-print("\n📊 Accuracy comparison:")
+print("\n Accuracy comparison:")
 print(f"Base Model Accuracy: {acc_base*100:.2f}%")
 print(f"L2 Regularized Model Accuracy: {acc_l2*100:.2f}%")
 print(f"L4 Deeper Model Accuracy: {acc_l4*100:.2f}%")
 
 # ============================================================
-# 📈 Plot training and validation accuracy
+#  Plot training and validation accuracy
 # ============================================================
 plt.figure(figsize=(10, 6))
 plt.plot(history_base.history['accuracy'], label='Base Train Acc', linestyle='-')
