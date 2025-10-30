@@ -3,10 +3,9 @@ import torch.nn as nn
 import torch.optim as optim
 from torchvision import datasets, transforms
 from torch.utils.data import DataLoader
-import os
 
 # -------------------------------
-# Data transforms (simplified normalization)
+# Data transforms (with normalization)
 # -------------------------------
 transform_train = transforms.Compose([
     transforms.RandomCrop(32, padding=4),
@@ -23,29 +22,24 @@ transform_test = transforms.Compose([
 ])
 
 # -------------------------------
-# CNN Model Definition
+# CNN Model
 # -------------------------------
 class CIFAR100CNN(nn.Module):
     def __init__(self):
         super(CIFAR100CNN, self).__init__()
-        self.conv1 = nn.Conv2d(3, 32, kernel_size=5)   # -> 28x28
-        self.conv2 = nn.Conv2d(32, 64, kernel_size=3)  # -> 12x12
-        self.conv3 = nn.Conv2d(64, 128, kernel_size=3) # -> 4x4
+        self.conv1 = nn.Conv2d(3, 32, kernel_size=5)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3)
+        self.conv3 = nn.Conv2d(64, 128, kernel_size=3)
         self.pool = nn.MaxPool2d(2, 2)
-
         self.fc1 = nn.Linear(128 * 2 * 2, 512)
         self.fc2 = nn.Linear(512, 100)
-
         self.relu = nn.ReLU()
         self.dropout = nn.Dropout(0.25)
 
     def forward(self, x):
-        x = self.relu(self.conv1(x))
-        x = self.pool(x)
-        x = self.relu(self.conv2(x))
-        x = self.pool(x)
-        x = self.relu(self.conv3(x))
-        x = self.pool(x)
+        x = self.pool(self.relu(self.conv1(x)))
+        x = self.pool(self.relu(self.conv2(x)))
+        x = self.pool(self.relu(self.conv3(x)))
         x = x.view(x.size(0), -1)
         x = self.dropout(x)
         x = self.relu(self.fc1(x))
@@ -54,7 +48,7 @@ class CIFAR100CNN(nn.Module):
         return x
 
 # -------------------------------
-# DataLoader function
+# DataLoader Function
 # -------------------------------
 def make_dataloaders(root='./data', batch_size=128, num_workers=2):
     train_data = datasets.CIFAR100(root=root, train=True, download=True, transform=transform_train)
@@ -64,16 +58,60 @@ def make_dataloaders(root='./data', batch_size=128, num_workers=2):
     return train_loader, test_loader
 
 # -------------------------------
-# Main: Smoke test
+# Accuracy Calculation
+# -------------------------------
+def calculate_accuracy(model, dataloader, device):
+    model.eval()
+    correct = 0
+    total = 0
+
+    with torch.no_grad():
+        for images, labels in dataloader:
+            images, labels = images.to(device), labels.to(device)
+            outputs = model(images)
+            _, predicted = torch.max(outputs, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+    acc = 100 * correct / total
+    return acc
+
+# -------------------------------
+# Training Loop
+# -------------------------------
+def train_model(model, train_loader, test_loader, device, epochs=5, lr=0.001):
+    criterion = nn.CrossEntropyLoss()
+    optimizer = optim.Adam(model.parameters(), lr=lr)
+
+    for epoch in range(epochs):
+        model.train()
+        running_loss = 0.0
+
+        for i, (images, labels) in enumerate(train_loader):
+            images, labels = images.to(device), labels.to(device)
+
+            optimizer.zero_grad()
+            outputs = model(images)
+            loss = criterion(outputs, labels)
+            loss.backward()
+            optimizer.step()
+
+            running_loss += loss.item()
+
+        train_acc = calculate_accuracy(model, train_loader, device)
+        test_acc = calculate_accuracy(model, test_loader, device)
+
+        print(f"Epoch [{epoch+1}/{epochs}] | "
+              f"Loss: {running_loss/len(train_loader):.4f} | "
+              f"Train Acc: {train_acc:.2f}% | Test Acc: {test_acc:.2f}%")
+
+# -------------------------------
+# Main
 # -------------------------------
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model = CIFAR100CNN().to(device)
+    train_loader, test_loader = make_dataloaders()
 
-    dummy = torch.randn(4, 3, 32, 32, device=device)
-    out = model(dummy)
-    print("Smoke test output shape:", out.shape)  # Expected: (4, 100)
-
-    # Uncomment to test dataloaders
-    # train_loader, test_loader = make_dataloaders()
-    # print("Train batches:", len(train_loader), "Test batches:", len(test_loader))
+    print("Training on:", device)
+    train_model(model, train_loader, test_loader, device, epochs=5, lr=0.001)
