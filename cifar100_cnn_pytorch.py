@@ -62,9 +62,7 @@ def make_dataloaders(root='./data', batch_size=128, num_workers=2):
 # -------------------------------
 def calculate_accuracy(model, dataloader, device):
     model.eval()
-    correct = 0
-    total = 0
-
+    correct, total = 0, 0
     with torch.no_grad():
         for images, labels in dataloader:
             images, labels = images.to(device), labels.to(device)
@@ -72,22 +70,21 @@ def calculate_accuracy(model, dataloader, device):
             _, predicted = torch.max(outputs, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-
-    acc = 100 * correct / total
-    return acc
+    return 100 * correct / total
 
 # -------------------------------
-# Training Loop
+# Training Loop (Final Summary Output)
 # -------------------------------
 def train_model(model, train_loader, test_loader, device, epochs=5, lr=0.001):
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=lr)
 
+    print(f"\nTraining started on {device} for {epochs} epochs...\n")
     for epoch in range(epochs):
         model.train()
         running_loss = 0.0
 
-        for i, (images, labels) in enumerate(train_loader):
+        for images, labels in train_loader:
             images, labels = images.to(device), labels.to(device)
 
             optimizer.zero_grad()
@@ -98,12 +95,23 @@ def train_model(model, train_loader, test_loader, device, epochs=5, lr=0.001):
 
             running_loss += loss.item()
 
-        train_acc = calculate_accuracy(model, train_loader, device)
-        test_acc = calculate_accuracy(model, test_loader, device)
+        print(f"Epoch {epoch+1}/{epochs} completed.")
 
-        print(f"Epoch [{epoch+1}/{epochs}] | "
-              f"Loss: {running_loss/len(train_loader):.4f} | "
-              f"Train Acc: {train_acc:.2f}% | Test Acc: {test_acc:.2f}%")
+    # Final evaluation
+    print("\nTraining complete! Evaluating final accuracy...\n")
+    train_acc = calculate_accuracy(model, train_loader, device)
+    test_acc = calculate_accuracy(model, test_loader, device)
+
+    # Structured Summary Output
+    print("=" * 50)
+    print("FINAL MODEL PERFORMANCE SUMMARY")
+    print("=" * 50)
+    print(f"Total Epochs   : {epochs}")
+    print(f"Learning Rate  : {lr}")
+    print(f"Training Loss  : {running_loss/len(train_loader):.4f}")
+    print(f"Training Accuracy : {train_acc:.2f}%")
+    print(f"Testing Accuracy  : {test_acc:.2f}%")
+    print("=" * 50)
 
 # -------------------------------
 # Main
